@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Sign In</h1>
+    <form action="" method="post" novalidate>
+<!--        这个方法可以生成一个隐藏的字段，包括一个token，用来防止CSRF攻击,这个方法需要变量SECRET_KEY-->
+        {{ form.hidden_tag() }}
+        <p>
+<!--            这里之所以没有html元素，是因为flask_wtf会自动渲染，label就是名字-->
+            {{ form.username.label }}<br>
+<!--            而form.<filed_name>()则是自动渲染出一个而输入框，html的属性则作为函数入参传入-->
+            {{ form.username(size=32) }}
+<!--            如果字段有validator，form.<field_name>.errors就会有。这里用for是因为一个字段可能有多个validator-->
+            {% for error in form.username.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password(size=32) }}
+            {% for error in form.password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
