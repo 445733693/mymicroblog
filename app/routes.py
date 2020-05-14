@@ -1,14 +1,17 @@
-from flask import render_template, flash, redirect,url_for
-from app import app
-from app.forms import LoginForm
+from flask import render_template, flash, redirect, url_for, request
+from app import app, db
+from app.forms import LoginForm, RegistrationForm
+from flask_login import current_user, login_user, logout_user, login_required
+from app.models import User
+
 
 # 这里的url对应的函数，叫做视图函数view function
 
 
 @app.route('/')
 @app.route('/index')
+@login_required
 def index():
-    user = {'username': 'Miguel'}
     posts = [
         {
             'author': {'username': 'John'},
@@ -19,15 +22,45 @@ def index():
             'body': 'The Avengers movie was so cool!'
         }
     ]
-    return render_template('index.html', title='Home', user=user, posts=posts)  # 这里的入参，就是html文件里的变量名
+    return render_template('index.html', title='Home Page', posts=posts)  # 这里的入参，就是html文件里的变量名
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
-        # flash用于返回给用户提示，其实调用flash的时候，只是Flask保存了一下这个数据，还需要template的渲染
-        # 所以需要重定向到一个页面（这里用index)，还需要在那里修改html来显示
-        flash('Login request for user {},remember_me={}'.format(form.username.data, form.remember_me.data))
-        return redirect(url_for('index'))  # url_for方法可以根据入参视图函数名，得到对应的url，且会自动加url上下文,比写死好
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None or not user.check_password(form.password.data):
+            # flash用于返回给用户提示，其实调用flash的时候，只是Flask保存了一下这个数据，还需要template的渲染
+            # 所以需要重定向到一个页面（这里用index)，还需要在那里修改html来显示
+            flash('Invalid username or password')
+            return redirect(url_for('login'))  # url_for方法可以根据入参视图函数名，得到对应的url，且会自动加url上下文,比写死好
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')  # 获取用户登录前想要访问的url，这个会放在url的next字段里
+        if not next_page or url_for(next_page).netloc != '':
+            next_page = url_for('index')  # 如果没有，或是绝对路径，则重定向到index
+        return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations,you are now a registered user!')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)

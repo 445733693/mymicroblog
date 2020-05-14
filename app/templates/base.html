@@ -11,7 +11,12 @@
             Microblog:
 <!--            url_for方法可以根据入参视图函数名，得到对应的url，且会自动加url上下文-->
             <a href="{{ url_for('index') }}">Home</a>
+<!--            没有登录的，这个is_anonymous都是false，这是继承于UserMixin的-->
+            {% if current_user.is_anonymous %}
             <a href="{{ url_for('login') }}">Login</a>
+            {% else %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
         </div>
         <hr>
 <!--        get_flashed_messages从flash()方法存储的数据中取数据，且取出后，flash中就没了，即只能用一次-->

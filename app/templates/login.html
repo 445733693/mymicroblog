@@ -2,6 +2,7 @@
 
 {% block content %}
     <h1>Sign In</h1>
+<!--    这里的action是""，就是提交到当前url即/login，因为这个页面就是在/login，就是view function /login渲染出来的-->
     <form action="" method="post" novalidate>
 <!--        这个方法可以生成一个隐藏的字段，包括一个token，用来防止CSRF攻击,这个方法需要变量SECRET_KEY-->
         {{ form.hidden_tag() }}
@@ -25,4 +26,6 @@
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit() }}</p>
     </form>
+    <p>New User? <a href="{{ url_for('register') }}">Click to Register!</a></p>
 {% endblock %}
+
