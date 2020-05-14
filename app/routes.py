@@ -3,6 +3,7 @@ from app import app, db
 from app.forms import LoginForm, RegistrationForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User
+from werkzeug.urls import url_parse
 
 
 # 这里的url对应的函数，叫做视图函数view function
@@ -39,7 +40,7 @@ def login():
             return redirect(url_for('login'))  # url_for方法可以根据入参视图函数名，得到对应的url，且会自动加url上下文,比写死好
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')  # 获取用户登录前想要访问的url，这个会放在url的next字段里
-        if not next_page or url_for(next_page).netloc != '':
+        if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')  # 如果没有，或是绝对路径，则重定向到index
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
@@ -64,3 +65,4 @@ def register():
         flash('Congratulations,you are now a registered user!')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
+
