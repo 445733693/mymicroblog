@@ -3,6 +3,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app import login
+from hashlib import md5
 
 # 在解释器中执行db.create_all()来创建数据库和表
 
@@ -15,12 +16,19 @@ class User(UserMixin, db.Model):
     # 一对多关系，定义在一的一端，这样可以很方便地根据一获得多
     # 第一个参数'Post'指多端的类名；backref指多端指向一端的字段名，在初始化多端对象时传入会自动初始化多端的外键；
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    about_me = db.Column(db.String(140))
+    last_seen = db.Column(db.DateTime,default=datetime.utcnow)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def avatar(self,size):
+        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
+        return 'https://www.gravatar.com/avatar/{}?d=identicon&s={}'.format(
+            digest, size)
 
     def __repr__(self):  # 这个方法是python里的print出来的方法
         return '<User {}>'.format(self.username)
