@@ -3,4 +3,4 @@ __pycache__/
 .idea/
 app.db
 app/__pycache__/
-
+logs/
